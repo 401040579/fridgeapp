@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useFoodStore } from '@/stores/foodStore'
 import type { RecipeMatch } from '@/types/recipe'
+import { getRecipeRecommendations, isAPIConfigured } from '@/services/aiService'
 
 const foodStore = useFoodStore()
 
@@ -22,32 +23,28 @@ async function getRecommendations() {
   error.value = null
 
   try {
-    // TODO: 调用 Claude API 获取菜谱推荐
-    // 暂时使用模拟数据
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    // 检查 API 是否配置
+    if (!isAPIConfigured()) {
+      error.value = 'API 未配置，请在 .env 文件中设置 VITE_CLAUDE_API_KEY'
+      return
+    }
 
-    recipes.value = [
-      {
-        recipe: {
-          id: '1',
-          name: '番茄炒蛋',
-          description: '经典家常菜，简单快手',
-          ingredients: [
-            { name: '番茄', quantity: 2, unit: '个', optional: false },
-            { name: '鸡蛋', quantity: 3, unit: '个', optional: false },
-          ],
-          steps: ['番茄切块', '鸡蛋打散', '热油炒蛋', '加入番茄翻炒'],
-          cookingTime: 15,
-          difficulty: 'easy',
-          tags: ['家常菜', '快手菜'],
-        },
-        matchedIngredients: ['番茄', '鸡蛋'],
-        missingIngredients: [],
-        matchScore: 100,
-      },
-    ]
+    // 调用 Claude API 获取菜谱推荐
+    const recommendations = await getRecipeRecommendations(foodStore.activeFoods)
+
+    if (recommendations.length === 0) {
+      error.value = '暂无匹配的菜谱推荐'
+      return
+    }
+
+    // 将 matchScore 转换为百分比格式显示
+    recipes.value = recommendations.map((r) => ({
+      ...r,
+      matchScore: Math.round(r.matchScore * 100),
+    }))
   } catch (e) {
-    error.value = '获取菜谱推荐失败，请重试'
+    error.value = e instanceof Error ? e.message : '获取菜谱推荐失败，请重试'
+    console.error('Recipe recommendation error:', e)
   } finally {
     isLoading.value = false
   }

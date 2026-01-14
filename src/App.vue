@@ -2,11 +2,15 @@
 import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUiStore } from '@/stores/uiStore'
+import { useFoodStore } from '@/stores/foodStore'
 import { initDatabase } from '@/db'
+import { initNotificationService } from '@/services/notificationService'
+import { initSyncService } from '@/services/firebaseService'
 
 const route = useRoute()
 const router = useRouter()
 const uiStore = useUiStore()
+const foodStore = useFoodStore()
 
 const currentTitle = computed(() => (route.meta.title as string) || '智能冰箱管家')
 const showBackButton = computed(() => route.path !== '/')
@@ -14,8 +18,14 @@ const showBackButton = computed(() => route.path !== '/')
 onMounted(async () => {
   // 初始化数据库
   await initDatabase()
+  // 加载食材数据
+  await foodStore.loadFoods()
   // 初始化网络状态监听
   uiStore.initOnlineListener()
+  // 初始化通知服务
+  await initNotificationService(() => foodStore.activeFoods)
+  // 初始化云同步服务
+  await initSyncService()
 })
 
 function goBack() {
