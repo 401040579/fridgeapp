@@ -1,5 +1,5 @@
 import { db } from '@/db'
-import type { SyncQueueItem, SyncOperation } from '@/types/sync'
+import type { SyncQueueItem } from '@/types/sync'
 import { v4 as uuidv4 } from 'uuid'
 
 export type CreateSyncQueueInput = Omit<SyncQueueItem, 'id'>

@@ -2,7 +2,6 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { FoodItem, StorageLocation, FoodCategory, RecognizedFood, FoodUnit } from '@/types/food'
 import { foodRepository, type CreateFoodInput } from '@/db/repositories/foodRepository'
-import { DEFAULT_EXPIRY_DAYS } from '@/types/food'
 
 export const useFoodStore = defineStore('food', () => {
   // State
@@ -90,8 +89,9 @@ export const useFoodStore = defineStore('food', () => {
   async function deleteFood(id: string): Promise<void> {
     await foodRepository.softDelete(id)
     const index = foods.value.findIndex((f) => f.id === id)
-    if (index !== -1) {
-      foods.value[index].deletedAt = new Date().toISOString()
+    const food = foods.value[index]
+    if (index !== -1 && food) {
+      food.deletedAt = new Date().toISOString()
     }
   }
 

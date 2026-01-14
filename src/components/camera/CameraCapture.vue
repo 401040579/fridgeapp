@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import type { RecognizedFood } from '@/types/food'
+import { recognizeFoodFromImage } from '@/services/claudeApi'
 
 const emit = defineEmits<{
   recognized: [foods: RecognizedFood[]]
@@ -85,37 +86,16 @@ async function recognize() {
   error.value = null
 
   try {
-    // TODO: 调用 Claude Vision API
-    // 暂时使用模拟数据
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    const foods = await recognizeFoodFromImage(capturedImage.value)
 
-    const mockFoods: RecognizedFood[] = [
-      {
-        name: '番茄',
-        confidence: 0.95,
-        suggestedCategory: 'vegetable',
-        suggestedLocation: 'refrigerated',
-        suggestedExpiryDays: 7,
-      },
-      {
-        name: '黄瓜',
-        confidence: 0.88,
-        suggestedCategory: 'vegetable',
-        suggestedLocation: 'refrigerated',
-        suggestedExpiryDays: 5,
-      },
-      {
-        name: '鸡蛋',
-        confidence: 0.92,
-        suggestedCategory: 'other',
-        suggestedLocation: 'refrigerated',
-        suggestedExpiryDays: 14,
-      },
-    ]
+    if (foods.length === 0) {
+      error.value = '未识别到食材，请重新拍照'
+      return
+    }
 
-    emit('recognized', mockFoods)
+    emit('recognized', foods)
   } catch (e) {
-    error.value = '识别失败，请重试'
+    error.value = e instanceof Error ? e.message : '识别失败，请重试'
     console.error('Recognition error:', e)
   } finally {
     isRecognizing.value = false

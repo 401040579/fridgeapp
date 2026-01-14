@@ -1,5 +1,5 @@
 import { db } from '@/db'
-import type { FoodItem, FoodCategory, StorageLocation, FoodUnit } from '@/types/food'
+import type { FoodItem, FoodCategory, StorageLocation } from '@/types/food'
 import { v4 as uuidv4 } from 'uuid'
 
 export type CreateFoodInput = Omit<FoodItem, 'id' | 'createdAt' | 'updatedAt' | 'syncStatus'>

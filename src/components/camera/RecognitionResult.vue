@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import type { RecognizedFood, FoodCategory, StorageLocation, FoodUnit } from '@/types/food'
-import { CATEGORY_LABELS, LOCATION_LABELS, DEFAULT_EXPIRY_DAYS } from '@/types/food'
+import type { RecognizedFood } from '@/types/food'
+import { CATEGORY_LABELS, LOCATION_LABELS } from '@/types/food'
 
 const props = defineProps<{
   foods: RecognizedFood[]

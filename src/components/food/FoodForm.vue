@@ -62,8 +62,8 @@ watch(
           location: props.food.location,
           quantity: props.food.quantity,
           unit: props.food.unit,
-          purchaseDate: props.food.purchaseDate.split('T')[0],
-          expiryDate: props.food.expiryDate.split('T')[0],
+          purchaseDate: props.food.purchaseDate.split('T')[0] ?? '',
+          expiryDate: props.food.expiryDate.split('T')[0] ?? '',
           notes: props.food.notes || '',
         }
       } else {
@@ -77,8 +77,8 @@ watch(
           location: props.defaultLocation || 'refrigerated',
           quantity: 1,
           unit: '个',
-          purchaseDate: new Date().toISOString().split('T')[0],
-          expiryDate: expiryDate.toISOString().split('T')[0],
+          purchaseDate: new Date().toISOString().split('T')[0] ?? '',
+          expiryDate: expiryDate.toISOString().split('T')[0] ?? '',
           notes: '',
         }
       }
@@ -89,11 +89,11 @@ watch(
 watch(
   () => formData.value.category,
   (newCategory) => {
-    if (!isEdit.value) {
+    if (!isEdit.value && formData.value.purchaseDate) {
       const days = DEFAULT_EXPIRY_DAYS[newCategory]
       const expiryDate = new Date(formData.value.purchaseDate)
       expiryDate.setDate(expiryDate.getDate() + days)
-      formData.value.expiryDate = expiryDate.toISOString().split('T')[0]
+      formData.value.expiryDate = expiryDate.toISOString().split('T')[0] ?? ''
     }
   }
 )
@@ -109,8 +109,8 @@ async function handleSubmit() {
     location: formData.value.location,
     quantity: formData.value.quantity,
     unit: formData.value.unit,
-    purchaseDate: new Date(formData.value.purchaseDate).toISOString(),
-    expiryDate: new Date(formData.value.expiryDate).toISOString(),
+    purchaseDate: new Date(formData.value.purchaseDate || Date.now()).toISOString(),
+    expiryDate: new Date(formData.value.expiryDate || Date.now()).toISOString(),
     notes: formData.value.notes.trim() || undefined,
   }
 
@@ -130,17 +130,26 @@ function handleClose() {
 }
 
 function onCategoryConfirm({ selectedOptions }: { selectedOptions: { value: string }[] }) {
-  formData.value.category = selectedOptions[0].value as FoodCategory
+  const selected = selectedOptions[0]
+  if (selected) {
+    formData.value.category = selected.value as FoodCategory
+  }
   showCategoryPicker.value = false
 }
 
 function onLocationConfirm({ selectedOptions }: { selectedOptions: { value: string }[] }) {
-  formData.value.location = selectedOptions[0].value as StorageLocation
+  const selected = selectedOptions[0]
+  if (selected) {
+    formData.value.location = selected.value as StorageLocation
+  }
   showLocationPicker.value = false
 }
 
 function onUnitConfirm({ selectedOptions }: { selectedOptions: { value: string }[] }) {
-  formData.value.unit = selectedOptions[0].value as FoodUnit
+  const selected = selectedOptions[0]
+  if (selected) {
+    formData.value.unit = selected.value as FoodUnit
+  }
   showUnitPicker.value = false
 }
 
@@ -267,7 +276,7 @@ function onExpiryDateConfirm({ selectedValues }: { selectedValues: string[] }) {
 
     <van-popup v-model:show="showPurchaseDatePicker" position="bottom" round>
       <van-date-picker
-        :model-value="formData.purchaseDate.split('-')"
+        :model-value="(formData.purchaseDate || '').split('-')"
         @confirm="onPurchaseDateConfirm"
         @cancel="showPurchaseDatePicker = false"
       />
@@ -275,7 +284,7 @@ function onExpiryDateConfirm({ selectedValues }: { selectedValues: string[] }) {
 
     <van-popup v-model:show="showExpiryDatePicker" position="bottom" round>
       <van-date-picker
-        :model-value="formData.expiryDate.split('-')"
+        :model-value="(formData.expiryDate || '').split('-')"
         @confirm="onExpiryDateConfirm"
         @cancel="showExpiryDatePicker = false"
       />
